@@ -1,0 +1,26 @@
+---
+- name: Configure local dev environment
+  hosts: local
+  become: false
+  tasks:
+    - name: Ensure a project directory exists
+      file:
+        path: "{{ ansible_env.HOME }}/devops-lab/provisioned"
+        state: directory
+
+    - name: Write a config file from a template
+      copy:
+        dest: "{{ ansible_env.HOME }}/devops-lab/provisioned/app.conf"
+        content: |
+          app_name=devops-lab-app
+          environment=lab
+          managed_by=ansible
+
+    - name: Confirm Docker CLI is available
+      command: docker --version
+      register: docker_check
+      changed_when: false
+
+    - name: Show Docker version
+      debug:
+        msg: "{{ docker_check.stdout }}"
