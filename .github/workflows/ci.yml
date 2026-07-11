@@ -41,3 +41,20 @@ jobs:
         run: |
           docker tag devops-lab-app:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/devops-lab-app:latest
           docker push ghcr.io/${{ github.repository_owner }}/devops-lab-app:latest
+
+  deploy:
+    needs: build-and-test
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load fresh image into kind
+        run: |
+          docker build -t devops-lab-app:v1 ./app
+          kind load docker-image devops-lab-app:v1 --name devops-lab
+
+      - name: Deploy to kind cluster
+        run: kubectl apply -f k8s/
+
+      - name: Confirm rollout
+        run: kubectl rollout status deployment/devops-lab-app
